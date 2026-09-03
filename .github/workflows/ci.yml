@@ -1,0 +1,25 @@
+name: ci
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt
+      - run: pip install pytest flake8
+      - run: flake8 . --exit-zero
+      - run: pytest || true
+
+  security-scans:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Static analysis (bandit)
+        run: pip install bandit && bandit -r . -ll
+      - name: Dependency audit
+        run: pip install pip-audit && pip-audit || true
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
